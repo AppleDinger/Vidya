@@ -46,21 +46,32 @@ def test_prompts():
 
 
 def test_imports():
-    print("[3/3] Validating module imports and dependency integrity...")
+    print("[3/4] Validating module imports and dependency integrity...")
     import src.config
     import src.ingestion
     import src.chain
     print("      All Vidya core modules imported cleanly.")
 
 
+def test_mcp_server():
+    print("[4/4] Verifying MCP Server initialization & tools...")
+    from src.mcp_server import mcp, search_documents, list_indexed_documents
+    assert mcp.name == "Vidya-Document-Intelligence", f"Unexpected MCP server name: {mcp.name}"
+    # Test tool behavior with empty/unconfigured state to verify graceful error handling
+    empty_result = list_indexed_documents()
+    assert isinstance(empty_result, str), "list_indexed_documents should return a string summary"
+    print("      MCP Server initialized and tools registered successfully.")
+
+
 if __name__ == "__main__":
     print("========================================")
-    print("Running Vidya Sanity Tests")
+    print("Running Vidya Sanity & Integration Tests")
     print("========================================")
     try:
         test_imports()
         test_chunking_and_metadata()
         test_prompts()
+        test_mcp_server()
         print("\nAll sanity checks passed successfully!")
     except Exception as e:
         print(f"\nSanity check failed: {e}")

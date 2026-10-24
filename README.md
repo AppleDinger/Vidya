@@ -163,5 +163,4 @@ Use these ready-to-use bullet points on your resume and LinkedIn:
 
 ---
 
-## 📄 License
-This project is licensed under the [MIT License](LICENSE).
+

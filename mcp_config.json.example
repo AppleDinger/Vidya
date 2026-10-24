@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "vidya-docs": {
+      "command": "python",
+      "args": ["src/mcp_server.py"],
+      "env": {
+        "OPENAI_API_KEY": "your_api_key_here"
+      }
+    }
+  }
+}

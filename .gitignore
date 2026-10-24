@@ -1,0 +1,30 @@
+# Environment variables (CRITICAL: Never commit real API keys to version control!)
+.env
+.env.local
+.env.*.local
+
+# Python virtual environment
+venv/
+.venv/
+env/
+ENV/
+
+# Python cache & bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+
+# Local Vector Storage & Processed Data
+data/chroma_db/
+data/uploads/
+*.pdf
+
+# Streamlit logs & cache
+.streamlit/secrets.toml
+.streamlit/cache/
+
+# OS-specific files
+.DS_Store
+Thumbs.db

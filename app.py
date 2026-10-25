@@ -16,7 +16,8 @@ from src.config import (
     DEFAULT_LLM_MODEL,
     DEFAULT_EMBEDDING_MODEL,
     is_api_key_configured,
-    OPENAI_API_KEY,
+    get_active_api_key,
+    GEMINI_API_KEY,
     UPLOADS_DIR,
     CHROMA_DIR,
 )
@@ -149,19 +150,29 @@ with st.sidebar:
     st.caption("Document Intelligence & Retrieval Config")
 
     # API Key Handling (Environment variable or direct input for portability)
-    user_api_key = OPENAI_API_KEY
+    user_api_key = get_active_api_key()
     if not is_api_key_configured():
-        st.warning("⚠️ OpenAI API Key not detected in `.env`.")
+        st.warning("⚠️ Gemini / Google API Key not detected in `.env`.")
         user_api_key = st.text_input(
-            "Enter OpenAI API Key:",
+            "Enter Gemini API Key:",
             type="password",
-            help="Your key is kept only in memory during the session.",
+            help="Your key is kept only in memory during the session. Obtain a free key at https://aistudio.google.com/.",
         )
     else:
-        st.success("🔒 OpenAI API Key Loaded from `.env`", icon="✅")
+        st.success("🔒 Gemini API Key Loaded from `.env`", icon="✅")
 
     st.markdown("---")
-    st.subheader("📄 Document Ingestion")
+    st.subheader("🤖 Model & Hyperparameters")
+
+    # Model selector: gemini-1.5-pro vs gemini-1.5-flash
+    model_options = ["gemini-1.5-pro", "gemini-1.5-flash", "gemini-2.0-flash"]
+    default_idx = model_options.index(DEFAULT_LLM_MODEL) if DEFAULT_LLM_MODEL in model_options else 0
+    selected_llm_model = st.selectbox(
+        "LLM Engine",
+        options=model_options,
+        index=default_idx,
+        help="gemini-1.5-pro provides deep multi-page reasoning and citation discipline; flash models offer lower latency.",
+    )
 
     uploaded_files = st.file_uploader(
         "Upload Technical / Research PDF(s)",
@@ -200,7 +211,7 @@ with st.sidebar:
     if uploaded_files:
         if st.button("🚀 Ingest & Index Document(s)", use_container_width=True, type="primary"):
             if not user_api_key:
-                st.error("Please provide a valid OpenAI API Key before indexing.")
+                st.error("Please provide a valid Gemini API Key before indexing.")
             else:
                 with st.spinner("Processing PDF(s), generating embeddings, and building ChromaDB index..."):
                     try:
@@ -246,7 +257,7 @@ with st.sidebar:
                         rag_chain = build_rag_chain(
                             vectorstore=vectorstore,
                             retrieval_k=retrieval_k,
-                            model_name=DEFAULT_LLM_MODEL,
+                            model_name=selected_llm_model,
                             api_key=user_api_key,
                         )
 
@@ -275,9 +286,9 @@ with st.sidebar:
     st.subheader("📊 System Specs")
     st.markdown(
         f"""
-        - **LLM Engine:** `{DEFAULT_LLM_MODEL}`
+        - **LLM Engine:** `{selected_llm_model}`
         - **Temperature:** `0.0` (Deterministic)
-        - **Embedding Model:** `{DEFAULT_EMBEDDING_MODEL}`
+        - **Embedding Model:** `{DEFAULT_EMBEDDING_MODEL}` (768 Dim)
         - **Vector Database:** `ChromaDB` (Persistent)
         - **Chunk Splitter:** `RecursiveCharacter`
         """
@@ -320,10 +331,10 @@ st.markdown(
             Extract semantic insights with verifiable, citation-backed sources and zero hallucinations.
         </p>
         <div class="badge-container">
-            <span class="badge">OpenAI text-embedding-3-small</span>
+            <span class="badge">Google Gemini 1.5 Pro</span>
+            <span class="badge">Google text-embedding-004</span>
             <span class="badge">ChromaDB Vector Store</span>
-            <span class="badge">GPT-4o-mini (Temp=0)</span>
-            <span class="badge">Multi-Turn Memory</span>
+            <span class="badge">Zero-Hallucination Guardrails</span>
             <span class="badge">Source Inspectability</span>
         </div>
     </div>
@@ -335,7 +346,7 @@ st.markdown(
 if not st.session_state.rag_chain:
     st.info(
         "👋 **Welcome to Vidya!** To get started:\n"
-        "1. Enter or verify your OpenAI API key in the sidebar.\n"
+        "1. Enter or verify your Gemini API key in the sidebar ([Google AI Studio](https://aistudio.google.com/)).\n"
         "2. Upload one or more PDF documents (e.g., technical papers, financial reports, or legal contracts).\n"
         "3. Click **'Ingest & Index Document(s)'** to generate embeddings and initialize conversational retrieval.",
         icon="💡",

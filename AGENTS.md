@@ -24,11 +24,12 @@ The system transforms unstructured multi-page PDFs into an interactive knowledge
   - Unix/macOS Activation: `source venv/bin/activate`
 - **Primary Libraries:**
   - `streamlit`: Reactive user interface with chat history and collapsible chunk inspectability.
-  - `langchain`, `langchain-openai`, `langchain-community`: LCEL orchestration and conversational retrieval chains.
+  - `langchain`, `langchain-google-genai`, `langchain-community`: LCEL orchestration and conversational retrieval chains.
   - `langchain-chroma`, `chromadb`: Persistent, disk-backed vector database.
   - `pypdf`: PDF text extraction with page metadata preservation.
-  - `mcp[cli]`: Model Context Protocol server (`FastMCP`) exposing search tools to external agents.
+  - `mcp[cli]`: Model Context Protocol server exposing search tools to external agents.
   - `python-dotenv`: Environment configuration management.
+
 
 ---
 
@@ -73,7 +74,7 @@ Vidya/
 
 ### Module Rules:
 1. **`src/config.py`**:
-   - Single source of truth for paths (`CHROMA_DIR`, `DATA_DIR`), default models (`gpt-4o-mini`, `text-embedding-3-small`), and chunking hyperparameters.
+   - Single source of truth for paths (`CHROMA_DIR`, `DATA_DIR`), default models (`gemini-1.5-pro`, `models/text-embedding-004`), and chunking hyperparameters.
    - Do NOT hardcode file paths or API keys anywhere else in the code.
 2. **`src/ingestion.py`**:
    - Responsible for raw data conversion into indexed embeddings.
@@ -94,7 +95,7 @@ Vidya/
 ## 🛡️ 5. Security & Secret Safeguards
 
 - **Strict `.gitignore` enforcement:** Never commit `.env`, `.env.local`, API keys, or local vector store data (`data/chroma_db/`).
-- **OpenAI Key Validation:** Always verify `OPENAI_API_KEY` exists via `src.config.is_api_key_configured()` before calling external OpenAI endpoints.
+- **Gemini Key Validation:** Always verify `GEMINI_API_KEY` (or `GOOGLE_API_KEY`) exists via `src.config.is_api_key_configured()` before calling Google GenAI endpoints.
 - **Fail Gracefully:** Inform the user cleanly via UI warning or CLI message if their API key is missing.
 
 ---

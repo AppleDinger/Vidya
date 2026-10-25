@@ -11,17 +11,27 @@ Implements:
 from typing import List, Optional
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.documents import Document
-from langchain_openai import ChatOpenAI
-from langchain.chains import create_history_aware_retriever, create_retrieval_chain
-from langchain.chains.combine_documents import create_stuff_documents_chain
+from langchain_google_genai import ChatGoogleGenerativeAI
+try:
+    from langchain.chains import create_history_aware_retriever, create_retrieval_chain
+    from langchain.chains.combine_documents import create_stuff_documents_chain
+except (ImportError, ModuleNotFoundError):
+    from langchain_classic.chains import (
+        create_history_aware_retriever,
+        create_retrieval_chain,
+    )
+    from langchain_classic.chains.combine_documents import (
+        create_stuff_documents_chain,
+    )
 from langchain_chroma import Chroma
 
 from src.config import (
     DEFAULT_LLM_MODEL,
     DEFAULT_TEMPERATURE,
     DEFAULT_RETRIEVAL_K,
-    OPENAI_API_KEY,
+    GEMINI_API_KEY,
 )
+
 
 
 # ==============================================================================
@@ -70,22 +80,23 @@ def get_llm(
     model_name: str = DEFAULT_LLM_MODEL,
     temperature: float = DEFAULT_TEMPERATURE,
     api_key: Optional[str] = None,
-) -> ChatOpenAI:
+) -> ChatGoogleGenerativeAI:
     """
-    Initializes the OpenAI LLM instance.
+    Initializes the Google Gemini LLM instance (e.g. gemini-1.5-pro or gemini-1.5-flash).
 
     Temperature is strictly set to 0.0 to eliminate stochastic variance
     and enforce deterministic, grounded factual retrieval.
     """
-    active_api_key = api_key or OPENAI_API_KEY
+    active_api_key = api_key or GEMINI_API_KEY
     if not active_api_key:
-        raise ValueError("OpenAI API key must be provided or configured in .env")
+        raise ValueError("Gemini/Google API key must be provided or configured in .env")
 
-    return ChatOpenAI(
+    return ChatGoogleGenerativeAI(
         model=model_name,
         temperature=temperature,
-        openai_api_key=active_api_key,
+        google_api_key=active_api_key,
     )
+
 
 
 def build_rag_chain(

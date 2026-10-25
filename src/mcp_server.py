@@ -15,21 +15,27 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from mcp.server.fastmcp import FastMCP
-from src.config import CHROMA_DIR, OPENAI_API_KEY, is_api_key_configured
+try:
+    from mcp.server.fastmcp import FastMCP
+except (ImportError, ModuleNotFoundError):
+    from mcp.server.mcpserver import MCPServer as FastMCP
+
+from src.config import CHROMA_DIR, GEMINI_API_KEY, is_api_key_configured
 from src.ingestion import get_vectorstore
 
-# Initialize FastMCP Server with identity
+# Initialize FastMCP / MCPServer with identity
 mcp = FastMCP("Vidya-Document-Intelligence")
 
 
+
 def _ensure_active_api_key() -> None:
-    """Verifies that an OpenAI API key is present for generating query embeddings."""
+    """Verifies that a Gemini/Google API key is present for generating query embeddings."""
     if not is_api_key_configured():
         raise ValueError(
-            "OPENAI_API_KEY is not configured. Please set OPENAI_API_KEY in your .env "
+            "GEMINI_API_KEY (or GOOGLE_API_KEY) is not configured. Please set GEMINI_API_KEY in your .env "
             "or environment variables before starting the MCP server."
         )
+
 
 
 @mcp.tool()

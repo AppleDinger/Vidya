@@ -16,11 +16,11 @@ from src.chain import CONTEXTUALIZE_Q_PROMPT, QA_PROMPT
 
 
 def test_chunking_and_metadata():
-    print("[1/3] Testing chunking and metadata preservation...")
+    print("[1/4] Testing chunking and metadata preservation...")
     sample_text = (
         "Retrieval-Augmented Generation (RAG) is an AI architecture that enhances "
         "Large Language Models by grounding them on external knowledge bases.\n\n"
-        "Vidya uses OpenAI's text-embedding-3-small and ChromaDB for vector retrieval. "
+        "Vidya uses Google Gemini's text-embedding-004 and ChromaDB for vector retrieval. "
         "Each chunk maintains strict page lineage and metadata to guarantee that every "
         "synthesized fact can be cross-examined against original PDF sources."
     )
@@ -38,7 +38,7 @@ def test_chunking_and_metadata():
 
 
 def test_prompts():
-    print("[2/3] Verifying prompt templates and anti-hallucination guardrails...")
+    print("[2/4] Verifying prompt templates and anti-hallucination guardrails...")
     assert "Vidya" in QA_PROMPT.messages[0].prompt.template
     assert "I cannot find this information" in QA_PROMPT.messages[0].prompt.template
     assert "standalone question" in CONTEXTUALIZE_Q_PROMPT.messages[0].prompt.template
@@ -50,7 +50,9 @@ def test_imports():
     import src.config
     import src.ingestion
     import src.chain
-    print("      All Vidya core modules imported cleanly.")
+    from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings
+    print("      All Vidya core modules & Google GenAI dependencies imported cleanly.")
+
 
 
 def test_mcp_server():

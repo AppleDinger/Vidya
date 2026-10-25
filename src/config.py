@@ -24,13 +24,15 @@ UPLOADS_DIR.mkdir(exist_ok=True)
 load_dotenv(dotenv_path=BASE_DIR / ".env")
 
 # API Keys & Secrets
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
+# Prioritize GEMINI_API_KEY, with fallback to GOOGLE_API_KEY
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY", "")
+
 
 # LLM & Embedding Settings
-# gpt-4o-mini offers high factual accuracy, fast generation, and low inference cost
-DEFAULT_LLM_MODEL = os.getenv("OPENAI_MODEL_NAME", "gpt-4o-mini")
-# text-embedding-3-small offers top-tier retrieval performance at fractional cost
-DEFAULT_EMBEDDING_MODEL = os.getenv("OPENAI_EMBEDDING_MODEL", "text-embedding-3-small")
+# gemini-1.5-pro offers superior reasoning, long-context grounding, and zero-hallucination discipline
+DEFAULT_LLM_MODEL = os.getenv("GEMINI_MODEL_NAME", "gemini-1.5-pro")
+# models/text-embedding-004 delivers 768-dimensional state-of-the-art MTEB retrieval performance
+DEFAULT_EMBEDDING_MODEL = os.getenv("GEMINI_EMBEDDING_MODEL", "models/text-embedding-004")
 DEFAULT_TEMPERATURE = 0.0
 
 # Chunking & Token Budgeting Strategy
@@ -42,7 +44,14 @@ DEFAULT_CHUNK_OVERLAP = 200
 # Retrieval Parameters
 DEFAULT_RETRIEVAL_K = 4
 
+
+def get_active_api_key() -> str:
+    """Returns the active Gemini or Google API key from environment."""
+    return (os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY", "") or GEMINI_API_KEY).strip()
+
+
 def is_api_key_configured() -> bool:
-    """Check if a valid OpenAI API key is present in environment or config."""
-    key = os.getenv("OPENAI_API_KEY", "").strip()
-    return bool(key and not key.startswith("your_openai_api_key"))
+    """Check if a valid Gemini/Google API key is present in environment or config."""
+    key = get_active_api_key()
+    return bool(key and not key.startswith("your_"))
+

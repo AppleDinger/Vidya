@@ -2,7 +2,7 @@
 Ingestion & Vector Storage Pipeline for Vidya.
 
 Handles PDF loading, token-aware document chunking using RecursiveCharacterTextSplitter,
-embedding generation with OpenAI text-embedding-3-small, and persistent ChromaDB indexing.
+embedding generation with Google Gemini text-embedding-004, and persistent ChromaDB indexing.
 """
 
 import os
@@ -13,7 +13,7 @@ from typing import List, Optional
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_openai import OpenAIEmbeddings
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_chroma import Chroma
 
 from src.config import (
@@ -21,8 +21,9 @@ from src.config import (
     DEFAULT_CHUNK_OVERLAP,
     DEFAULT_EMBEDDING_MODEL,
     CHROMA_DIR,
-    OPENAI_API_KEY,
+    GEMINI_API_KEY,
 )
+
 
 
 def load_pdf(file_path: str | Path) -> List[Document]:
@@ -98,6 +99,25 @@ def chunk_documents(
     return chunks
 
 
+def get_embeddings(api_key: Optional[str] = None) -> GoogleGenerativeAIEmbeddings:
+    """
+    Initializes Google Gemini text-embedding-004 embeddings.
+
+    Embedding Choice: `models/text-embedding-004`
+    - Dimensions: 768
+    - Delivers top-tier retrieval performance on MTEB benchmarks.
+    - Native support for multilingual, code, and technical document domains.
+    """
+    active_api_key = api_key or GEMINI_API_KEY
+    if not active_api_key:
+        raise ValueError("Gemini/Google API key must be provided or configured in .env")
+
+    return GoogleGenerativeAIEmbeddings(
+        model=DEFAULT_EMBEDDING_MODEL,
+        google_api_key=active_api_key,
+    )
+
+
 def create_or_update_vectorstore(
     chunks: List[Document],
     persist_directory: str | Path = CHROMA_DIR,
@@ -105,30 +125,18 @@ def create_or_update_vectorstore(
     api_key: Optional[str] = None,
 ) -> Chroma:
     """
-    Generates OpenAI embeddings and persists chunks into a ChromaDB vector store.
-
-    Embedding Choice: `text-embedding-3-small`
-    - Dimensions: 1536
-    - Outperforms older models (ada-002) on MTEB benchmarks while being 5x cheaper.
-    - Highly resilient for multi-lingual and technical document retrieval.
+    Generates Google Gemini embeddings and persists chunks into a ChromaDB vector store.
 
     Args:
         chunks: List of split Document chunks.
         persist_directory: Local disk path to store ChromaDB files.
         collection_name: Unique collection identifier in Chroma.
-        api_key: OpenAI API Key (falls back to environment variable).
+        api_key: Gemini/Google API Key (falls back to environment variable).
 
     Returns:
         Configured Chroma vectorstore instance.
     """
-    active_api_key = api_key or OPENAI_API_KEY
-    if not active_api_key:
-        raise ValueError("OpenAI API key must be provided or configured in .env")
-
-    embeddings = OpenAIEmbeddings(
-        model=DEFAULT_EMBEDDING_MODEL,
-        openai_api_key=active_api_key,
-    )
+    embeddings = get_embeddings(api_key=api_key)
 
     vectorstore = Chroma.from_documents(
         documents=chunks,
@@ -146,16 +154,9 @@ def get_vectorstore(
     api_key: Optional[str] = None,
 ) -> Chroma:
     """
-    Retrieves a reference to an already existing ChromaDB vectorstore.
+    Retrieves a reference to an already existing ChromaDB vectorstore using Gemini embeddings.
     """
-    active_api_key = api_key or OPENAI_API_KEY
-    if not active_api_key:
-        raise ValueError("OpenAI API key must be provided or configured in .env")
-
-    embeddings = OpenAIEmbeddings(
-        model=DEFAULT_EMBEDDING_MODEL,
-        openai_api_key=active_api_key,
-    )
+    embeddings = get_embeddings(api_key=api_key)
 
     return Chroma(
         persist_directory=str(persist_directory),
